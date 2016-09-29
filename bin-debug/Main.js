@@ -136,12 +136,10 @@ var Main = (function (_super) {
         //var sky2Tween = egret.Tween.get(sky2);
         //sky2Tween.to({y:0},2000);
         //所在页面数和总页面数
-        var pageNumCurrent = 1;
-        var PageNumAll = 3;
-        var mode = 0;
-        /*var pageCurrent:egret.Bitmap;
-        var pagePrevious:egret.Bitmap;
-        var pageNext:egret.Bitmap;*/
+        var pageNumCurrent = 0;
+        var pageNumMoveTo = 0;
+        var pageNumAll = 2;
+        //写作2其实是3页
         var pageArray = [sky, sky2, sky3];
         pageTurning(pageNumCurrent);
         //2016touch
@@ -150,12 +148,7 @@ var Main = (function (_super) {
             alert(1111);
         },this);*/
         function pageTurning(pageNumCurrent) {
-            //pageSet(null, sky, sky2);
-            //if (pageNumCurrent == 1) {
-            pageTurningBitmap(pageArray[pageNumCurrent - 1], pageArray[pageNumCurrent]);
-            //} else if (pageNumCurrent == 2) {
-            //  pageTurningBitmap(sky2, sky);
-            //}
+            pageTurningBitmap();
         }
         /*function pageSet(picturePrevious: egret.Bitmap, pictureCurrent:egret.Bitmap, pictureNext: egret.Bitmap) {
             pagePrevious = picturePrevious;
@@ -164,26 +157,30 @@ var Main = (function (_super) {
 
         }*/
         //两个参数意义不同，此函数参数意义为当前页和下一页，并不是想要翻到的页数
-        function pageTurningBitmap(pictureCurrent, pictureNext) {
+        function pageTurningBitmap() {
             var distance = 0;
             var stageYBeforeMove = 0;
             var stageYAfterMove = 0;
-            pictureCurrent.touchEnabled = true;
-            pictureNext.touchEnabled = false;
-            pictureCurrent.addEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) {
+            pageArray[pageNumCurrent].touchEnabled = true;
+            for (var i = 0; i < pageArray.length; i++) {
+                if (i != pageNumCurrent) {
+                    pageArray[i].touchEnabled = false;
+                }
+            }
+            pageArray[pageNumCurrent].addEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) {
                 console.log(e.stageY);
                 stageYBeforeMove = e.stageY;
             }, this);
-            pictureCurrent.addEventListener(egret.TouchEvent.TOUCH_END, function (e) {
+            pageArray[pageNumCurrent].addEventListener(egret.TouchEvent.TOUCH_END, function (e) {
                 console.log("move to Y:" + e.stageY);
                 stageYAfterMove = e.stageY;
                 distance = stageYBeforeMove - stageYAfterMove;
                 //往后翻
                 if (distance > 0) {
-                    pageTurningDetermine(distance, pictureCurrent, pictureNext);
+                    pageTurningDetermine(distance, pageArray[pageNumCurrent], pageArray[pageNumCurrent + 1]);
                 }
                 else {
-                    pageTurningDetermine(distance, pictureNext, pictureCurrent);
+                    pageTurningDetermine(distance, pageArray[pageNumCurrent - 1], pageArray[pageNumCurrent]);
                 }
             }, this);
         }
@@ -193,18 +190,19 @@ var Main = (function (_super) {
         tween.to({x:100}, 2000).to({y:200}, 2000).call(function(){
             //alert("aaa")
         },this).to({x:26, y:33}, 20);*/
+        //两个参数为before是当前页，after是想要翻到的页数
         function pageTurningDetermine(moveDistance, pictureBeforeMove, pictureAfterMove) {
-            if (moveDistance > 300 && pageNumCurrent == PageNumAll) {
+            if (moveDistance > 300 && pageNumCurrent == pageNumAll) {
                 //var tweenSky = egret.Tween.get(sky);
                 //tweenSky.to({y:500},2000);
                 alert("最后一页不能往后翻");
                 console.log("最后一页不能往后翻");
             }
-            else if (moveDistance < -300 && pageNumCurrent == 1) {
+            else if (moveDistance < -300 && pageNumCurrent == 0) {
                 alert("第一页不能往前翻");
                 console.log("第一页不能往前翻");
             }
-            else if (moveDistance < -300 && pageNumCurrent != 1) {
+            else if (moveDistance < -300 && pageNumCurrent != 0) {
                 //alert("中间的页往前翻");
                 pageTurningTween(pictureAfterMove);
                 if (pictureAfterMove.y == 0) {
@@ -212,7 +210,7 @@ var Main = (function (_super) {
                 }
                 console.log("中间的页往前翻" + pictureAfterMove.y);
             }
-            else if (moveDistance > 300 && pageNumCurrent != PageNumAll) {
+            else if (moveDistance > 300 && pageNumCurrent != pageNumAll) {
                 //alert("中间的页往后翻");
                 pageTurningTween(pictureAfterMove);
                 //防止动画动到一半还改变了页数
