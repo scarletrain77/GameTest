@@ -34,6 +34,8 @@ class Main extends egret.DisplayObjectContainer {
      * Process interface loading
      */
     private loadingView: LoadingUI;
+    //当前页数
+    private pageNumCurrent: number = 0;
 
     public constructor() {
         super();
@@ -112,12 +114,91 @@ class Main extends egret.DisplayObjectContainer {
 
     private textfield: egret.TextField;
 
+
+    /**
+     * 翻页函数，在画场景中调用
+     */
+    private pageTurningBitmap(pageArray: egret.Bitmap[], pageNumAll: number): void {
+        var distance = 0;
+        var stageYBeforeMove = 0;
+        var stageYAfterMove = 0;
+        pageArray[this.pageNumCurrent].touchEnabled = true;
+        for (var i: number = 0; i < pageArray.length; i++) {
+            if (i != this.pageNumCurrent) {
+                pageArray[i].touchEnabled = false;
+            }
+        }
+        pageArray[this.pageNumCurrent].addEventListener(egret.TouchEvent.TOUCH_BEGIN, (e) => {
+            console.log(e.stageY);
+            stageYBeforeMove = e.stageY;
+        }, this);
+        pageArray[this.pageNumCurrent].addEventListener(egret.TouchEvent.TOUCH_END, (e) => {
+            console.log("move to Y:" + e.stageY);
+            stageYAfterMove = e.stageY;
+            distance = stageYBeforeMove - stageYAfterMove;
+            //往后翻
+            if (distance > 0) {
+                this.pageTurningDetermine(pageNumAll, distance, pageArray[this.pageNumCurrent], pageArray[this.pageNumCurrent + 1]);
+                //往前翻
+            } else {
+                this.pageTurningDetermine(pageNumAll, distance, pageArray[this.pageNumCurrent - 1], pageArray[this.pageNumCurrent]);
+            }
+        }, this);
+    }
+
+    /**
+     *两个参数为before是当前页，after是想要翻到的页数，判断要怎么翻页 
+     */
+    private pageTurningDetermine(pageNumAll: number, moveDistance: number, pictureBeforeMove: egret.Bitmap, pictureAfterMove: egret.Bitmap): void {
+        if (moveDistance > 300 && this.pageNumCurrent == pageNumAll) {
+            alert("最后一页不能往后翻");
+            //console.log("最后一页不能往后翻");
+        }
+        else if (moveDistance < -300 && this.pageNumCurrent == 0) {
+            alert("第一页不能往前翻");
+            //console.log("第一页不能往前翻");
+        } else if (moveDistance < -300 && this.pageNumCurrent != 0) {
+            //alert("中间的页往前翻");
+            this.pageTurningTween(pictureAfterMove);
+            if (pictureAfterMove.y == 0) {
+                this.pageNumCurrent--;
+            }
+            console.log("中间的页往前翻" + pictureAfterMove.y);
+        } else if (moveDistance > 300 && this.pageNumCurrent != pageNumAll) {
+            //alert("中间的页往后翻");
+            this.pageTurningTween(pictureAfterMove);
+            //防止动画动到一半还改变了页数
+            if (pictureAfterMove.y == 1136) {
+                this.pageNumCurrent++;
+            }
+            console.log("中间的页往后翻" + pictureAfterMove.y);
+        }
+        console.log("page:" + this.pageNumCurrent);
+    }
+
+    /**
+     * 实现翻页
+     */
+    private pageTurningTween(pageAfterMove: egret.Bitmap): void {
+        var pageAfterTween = egret.Tween.get(pageAfterMove);
+        if (pageAfterMove.y == 1136) {
+            pageAfterTween.to({ y: 0 }, 500);
+        } else if (pageAfterMove.y == 0) {
+            pageAfterTween.to({ y: 1136 }, 500);
+        }
+    }
+    // egret.TouchEvent.TOUCH_BEGIN
+    //20160928Begin
+    /*var tween = egret.Tween.get(icon);
+    tween.to({x:100}, 2000).to({y:200}, 2000).call(function(){
+        //alert("aaa")
+    },this).to({x:26, y:33}, 20);*/
+
     /**
      * 创建游戏场景
      * Create a game scene
      */
     private createGameScene(): void {
-
         //加载第一张图片
         var sky: egret.Bitmap = this.createBitmapByName("bg_jpg");
         this.addChild(sky);
@@ -137,128 +218,13 @@ class Main extends egret.DisplayObjectContainer {
         this.addChild(icon);
         icon.x = 26;
         icon.y = 33;
-        //第二张图片
-        var sky2: egret.Bitmap = this.createBitmapByName("bg_2_jpg");
-        this.addChild(sky2);
-        sky2.width = stageW;
-        sky2.height = stageH;
-        sky2.x = 0;
-        sky2.y = 1136;
 
-        var sky3: egret.Bitmap = this.createBitmapByName("bg_3_jpg");
-        this.addChild(sky3);
-        sky3.width = stageW;
-        sky3.height = stageH;
-        sky3.x = 0;
-        sky3.y = 1136;
-
-        //var sky2Tween = egret.Tween.get(sky2);
-        //sky2Tween.to({y:0},2000);
-
-        //所在页面数和总页面数
-        var pageNumCurrent = 0;
-        var pageNumMoveTo = 0;
-        var pageNumAll = 2;
-        //写作2其实是3页
-
-        var pageArray = [sky, sky2, sky3];
-
-        pageTurning(pageNumCurrent);
+        //pageTurning(pageNumCurrent);
         //2016touch
         /*icon.touchEnabled = true;
         icon.addEventListener(egret.TouchEvent.TOUCH_BEGIN,()=>{
             alert(1111);
         },this);*/
-
-
-
-        function pageTurning(pageNumCurrent: number): void {
-            pageTurningBitmap();
-        }
-
-        /*function pageSet(picturePrevious: egret.Bitmap, pictureCurrent:egret.Bitmap, pictureNext: egret.Bitmap) {
-            pagePrevious = picturePrevious;
-            pageNext = pictureNext;
-            pageCurrent = pictureCurrent;
-
-        }*/
-
-        //两个参数意义不同，此函数参数意义为当前页和下一页，并不是想要翻到的页数
-        function pageTurningBitmap(): void {
-            var distance = 0;
-            var stageYBeforeMove = 0;
-            var stageYAfterMove = 0;
-            pageArray[pageNumCurrent].touchEnabled = true;
-            for (var i: number = 0; i < pageArray.length; i++) {
-                if (i != pageNumCurrent) {
-                    pageArray[i].touchEnabled = false;
-                }
-            }
-            pageArray[pageNumCurrent].addEventListener(egret.TouchEvent.TOUCH_BEGIN, (e) => {
-                console.log(e.stageY);
-                stageYBeforeMove = e.stageY;
-            }, this);
-            pageArray[pageNumCurrent].addEventListener(egret.TouchEvent.TOUCH_END, (e) => {
-                console.log("move to Y:" + e.stageY);
-                stageYAfterMove = e.stageY;
-                distance = stageYBeforeMove - stageYAfterMove;
-                //往后翻
-                if (distance > 0) {
-                    pageTurningDetermine(distance, pageArray[pageNumCurrent], pageArray[pageNumCurrent + 1]);
-                    //往前翻
-                } else {
-                    pageTurningDetermine(distance, pageArray[pageNumCurrent - 1], pageArray[pageNumCurrent]);
-                }
-            }, this);
-
-
-        }
-        // egret.TouchEvent.TOUCH_BEGIN
-        //20160928Begin
-        /*var tween = egret.Tween.get(icon);
-        tween.to({x:100}, 2000).to({y:200}, 2000).call(function(){
-            //alert("aaa")
-        },this).to({x:26, y:33}, 20);*/
-
-        //两个参数为before是当前页，after是想要翻到的页数
-        function pageTurningDetermine(moveDistance: number, pictureBeforeMove: egret.Bitmap, pictureAfterMove: egret.Bitmap): void {
-            if (moveDistance > 300 && pageNumCurrent == pageNumAll) {
-                //var tweenSky = egret.Tween.get(sky);
-                //tweenSky.to({y:500},2000);
-                alert("最后一页不能往后翻");
-                console.log("最后一页不能往后翻");
-            }
-            else if (moveDistance < -300 && pageNumCurrent == 0) {
-                alert("第一页不能往前翻");
-                console.log("第一页不能往前翻");
-            } else if (moveDistance < -300 && pageNumCurrent != 0) {
-                //alert("中间的页往前翻");
-                pageTurningTween(pictureAfterMove);
-                if (pictureAfterMove.y == 0) {
-                    pageNumCurrent--;
-                }
-                console.log("中间的页往前翻" + pictureAfterMove.y);
-            } else if (moveDistance > 300 && pageNumCurrent != pageNumAll) {
-                //alert("中间的页往后翻");
-                pageTurningTween(pictureAfterMove);
-                //防止动画动到一半还改变了页数
-                if (pictureAfterMove.y == 1136) {
-                    pageNumCurrent++;
-                }
-                console.log("中间的页往后翻" + pictureAfterMove.y);
-            }
-            console.log("page:" + pageNumCurrent);
-        }
-
-        function pageTurningTween(pageAfterMove: egret.Bitmap): void {
-            var pageAfterTween = egret.Tween.get(pageAfterMove);
-            if (pageAfterMove.y == 1136) {
-                pageAfterTween.to({ y: 0 }, 500);
-            } else if (pageAfterMove.y == 0) {
-                pageAfterTween.to({ y: 1136 }, 500);
-            }
-
-        }
 
         var line = new egret.Shape();
         line.graphics.lineStyle(2, 0xffffff);
@@ -294,7 +260,31 @@ class Main extends egret.DisplayObjectContainer {
         //根据name关键字，异步获取一个json配置文件，name属性请参考resources/resource.json配置文件的内容。
         // Get asynchronously a json configuration file according to name keyword. As for the property of name please refer to the configuration file of resources/resource.json.
         RES.getResAsync("description_json", this.startAnimation, this)
+
+        //第二张图片
+        var sky2: egret.Bitmap = this.createBitmapByName("bg_2_jpg");
+        this.addChild(sky2);
+        sky2.width = stageW;
+        sky2.height = stageH;
+        sky2.x = 0;
+        sky2.y = 1136;
+
+        var sky3: egret.Bitmap = this.createBitmapByName("bg_3_jpg");
+        this.addChild(sky3);
+        sky3.width = stageW;
+        sky3.height = stageH;
+        sky3.x = 0;
+        sky3.y = 1136;
+
+        var pageNumAll = 2;
+        //总页面数写作2其实是3页
+        var pageArray = [sky, sky2, sky3];
+
+        this.pageTurningBitmap(pageArray, pageNumAll);
     }
+
+
+
 
     /**
      * 根据name关键字创建一个Bitmap对象。name属性请参考resources/resource.json配置文件的内容。
