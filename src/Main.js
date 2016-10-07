@@ -26,52 +26,46 @@
 //  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //////////////////////////////////////////////////////////////////////////////////////
-
-class Main extends egret.DisplayObjectContainer {
-
-    /**
-     * 加载进度界面
-     * Process interface loading
-     */
-    private loadingView: LoadingUI;
-    //当前页数
-    private pageNumCurrent: number = 0;
-
-    public constructor() {
-        super();
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var Main = (function (_super) {
+    __extends(Main, _super);
+    function Main() {
+        _super.call(this);
+        //当前页数
+        this.pageNumCurrent = 0;
         this.addEventListener(egret.Event.ADDED_TO_STAGE, this.onAddToStage, this);
     }
-
-    private onAddToStage(event: egret.Event) {
+    Main.prototype.onAddToStage = function (event) {
         //设置加载进度界面
         //Config to load process interface
         this.loadingView = new LoadingUI();
         this.stage.addChild(this.loadingView);
-
         //初始化Resource资源加载库
         //initiate Resource loading library
         RES.addEventListener(RES.ResourceEvent.CONFIG_COMPLETE, this.onConfigComplete, this);
         RES.loadConfig("resource/default.res.json", "resource/");
-    }
-
+    };
     /**
      * 配置文件加载完成,开始预加载preload资源组。
      * configuration file loading is completed, start to pre-load the preload resource group
      */
-    private onConfigComplete(event: RES.ResourceEvent): void {
+    Main.prototype.onConfigComplete = function (event) {
         RES.removeEventListener(RES.ResourceEvent.CONFIG_COMPLETE, this.onConfigComplete, this);
         RES.addEventListener(RES.ResourceEvent.GROUP_COMPLETE, this.onResourceLoadComplete, this);
         RES.addEventListener(RES.ResourceEvent.GROUP_LOAD_ERROR, this.onResourceLoadError, this);
         RES.addEventListener(RES.ResourceEvent.GROUP_PROGRESS, this.onResourceProgress, this);
         RES.addEventListener(RES.ResourceEvent.ITEM_LOAD_ERROR, this.onItemLoadError, this);
         RES.loadGroup("preload");
-    }
-
+    };
     /**
      * preload资源组加载完成
      * Preload resource group is loaded
      */
-    private onResourceLoadComplete(event: RES.ResourceEvent): void {
+    Main.prototype.onResourceLoadComplete = function (event) {
         if (event.groupName == "preload") {
             this.stage.removeChild(this.loadingView);
             RES.removeEventListener(RES.ResourceEvent.GROUP_COMPLETE, this.onResourceLoadComplete, this);
@@ -80,146 +74,122 @@ class Main extends egret.DisplayObjectContainer {
             RES.removeEventListener(RES.ResourceEvent.ITEM_LOAD_ERROR, this.onItemLoadError, this);
             this.createGameScene();
         }
-    }
-
+    };
     /**
      * 资源组加载出错
      *  The resource group loading failed
      */
-    private onItemLoadError(event: RES.ResourceEvent): void {
+    Main.prototype.onItemLoadError = function (event) {
         console.warn("Url:" + event.resItem.url + " has failed to load");
-    }
-
+    };
     /**
      * 资源组加载出错
      *  The resource group loading failed
      */
-    private onResourceLoadError(event: RES.ResourceEvent): void {
+    Main.prototype.onResourceLoadError = function (event) {
         //TODO
         console.warn("Group:" + event.groupName + " has failed to load");
         //忽略加载失败的项目
         //Ignore the loading failed projects
         this.onResourceLoadComplete(event);
-    }
-
+    };
     /**
      * preload资源组加载进度
      * Loading process of preload resource group
      */
-    private onResourceProgress(event: RES.ResourceEvent): void {
+    Main.prototype.onResourceProgress = function (event) {
         if (event.groupName == "preload") {
             this.loadingView.setProgress(event.itemsLoaded, event.itemsTotal);
         }
-    }
-
-    private textfield: egret.TextField;
-
-
+    };
     /**
      * 翻页函数，在画场景中调用
      */
-    private pageTurningBitmap(pageArray: egret.Bitmap[], pageNumAll: number, pageText:egret.TextField[]): void {
+    Main.prototype.pageTurningBitmap = function (pageArray, pageNumAll) {
+        var _this = this;
         var distance = 0;
         var stageYBeforeMove = 0;
         var stageYAfterMove = 0;
         pageArray[this.pageNumCurrent].touchEnabled = true;
-        for (var i: number = 0; i < pageArray.length; i++) {
+        for (var i = 0; i < pageArray.length; i++) {
             if (i != this.pageNumCurrent) {
                 pageArray[i].touchEnabled = false;
             }
         }
-        pageArray[this.pageNumCurrent].addEventListener(egret.TouchEvent.TOUCH_BEGIN, (e) => {
+        pageArray[this.pageNumCurrent].addEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) {
             console.log(e.stageY);
             stageYBeforeMove = e.stageY;
         }, this);
-        pageArray[this.pageNumCurrent].addEventListener(egret.TouchEvent.TOUCH_END, (e) => {
+        pageArray[this.pageNumCurrent].addEventListener(egret.TouchEvent.TOUCH_END, function (e) {
             console.log("move to Y:" + e.stageY);
             stageYAfterMove = e.stageY;
             distance = stageYBeforeMove - stageYAfterMove;
             //往后翻
             if (distance > 0) {
-                var pageToNum = this.pageNumCurrent + 1;
-                console.log("现在开始往后翻，翻前页" + this.pageNumCurrent + "翻后页：" + pageToNum);
-                this.pageTurningDetermine(pageNumAll, distance, pageArray[this.pageNumCurrent], pageArray[this.pageNumCurrent + 1], pageText[this.pageNumCurrent], pageText[this.pageNumCurrent+1]);            
-            } else {
-                var pageNowNum = this.pageNumCurrent - 1;
-                console.log("现在开始往前翻，翻前页" + this.pageNumCurrent + "翻后页" + pageNowNum);
-                this.pageTurningDetermine(pageNumAll, distance, pageArray[this.pageNumCurrent], pageArray[this.pageNumCurrent - 1], pageText[this.pageNumCurrent], pageText[this.pageNumCurrent-1]);
+                _this.pageTurningDetermine(pageNumAll, distance, pageArray[_this.pageNumCurrent], pageArray[_this.pageNumCurrent + 1]);
+            }
+            else {
+                _this.pageTurningDetermine(pageNumAll, distance, pageArray[_this.pageNumCurrent - 1], pageArray[_this.pageNumCurrent]);
             }
         }, this);
-    }
-
+    };
     /**
-     *两个参数为before是当前页，after是想要翻到的页数，判断要怎么翻页 
+     *两个参数为before是当前页，after是想要翻到的页数，判断要怎么翻页
      */
-    private pageTurningDetermine(pageNumAll: number, moveDistance: number, pictureBeforeMove: egret.Bitmap, pictureAfterMove: egret.Bitmap, textBeforeMove:egret.TextField, textAfterMove:egret.TextField): void {
+    Main.prototype.pageTurningDetermine = function (pageNumAll, moveDistance, pictureBeforeMove, pictureAfterMove) {
         if (moveDistance > 300 && this.pageNumCurrent == pageNumAll) {
             alert("最后一页不能往后翻");
-            //console.log("最后一页不能往后翻");
         }
         else if (moveDistance < -300 && this.pageNumCurrent == 0) {
             alert("第一页不能往前翻");
-            //console.log("第一页不能往前翻");
-        } else if (moveDistance < -300 && this.pageNumCurrent != 0) {
+        }
+        else if (moveDistance < -300 && this.pageNumCurrent != 0) {
             //alert("中间的页往前翻");
-            this.showText(textBeforeMove, 0, textBeforeMove.x, textBeforeMove.y+10);
-            this.pageTurningTween(pictureBeforeMove);
-            this.showText(textAfterMove, 1, textAfterMove.x, textAfterMove.y-10);
+            this.pageTurningTween(pictureAfterMove);
             if (pictureAfterMove.y == 0) {
                 this.pageNumCurrent--;
             }
-            
-        } else if (moveDistance > 300 && this.pageNumCurrent != pageNumAll) {
+            console.log("中间的页往前翻" + pictureAfterMove.y);
+        }
+        else if (moveDistance > 300 && this.pageNumCurrent != pageNumAll) {
             //alert("中间的页往后翻");
-            console.log("中间的页往后翻" + textBeforeMove.text + " " + textAfterMove.text);
-            this.showText(textBeforeMove, 0, textBeforeMove.x, textBeforeMove.y+10);
             this.pageTurningTween(pictureAfterMove);
-            this.showText(textAfterMove, 1, textAfterMove.x, textAfterMove.y-10);
             //防止动画动到一半还改变了页数
             if (pictureAfterMove.y == 1136) {
                 this.pageNumCurrent++;
             }
-            
+            console.log("中间的页往后翻" + pictureAfterMove.y);
         }
         console.log("page:" + this.pageNumCurrent);
-    }
-
+    };
     /**
      * 实现翻页
      */
-    private pageTurningTween(pageAfterMove: egret.Bitmap): void {
+    Main.prototype.pageTurningTween = function (pageAfterMove) {
         var pageAfterTween = egret.Tween.get(pageAfterMove);
         if (pageAfterMove.y == 1136) {
             pageAfterTween.to({ y: 0 }, 500);
-        } else if (pageAfterMove.y == 0) {
+        }
+        else if (pageAfterMove.y == 0) {
             pageAfterTween.to({ y: 1136 }, 500);
         }
-    }
-
-/**
- * text:想要变化的文字，toAlpha:所变到的alpha值，toX：去往的X坐标，toY：去往的Y坐标
- */
-    private showText(text:egret.TextField, toAlpha:number, toX:number, toY:number):void{
-        var tww = egret.Tween.get(text);
-        tww.to({"alpha":toAlpha, x:toX, y:toY}, 1000);
-    }
+    };
     // egret.TouchEvent.TOUCH_BEGIN
     //20160928Begin
     /*var tween = egret.Tween.get(icon);
     tween.to({x:100}, 2000).to({y:200}, 2000).call(function(){
         //alert("aaa")
     },this).to({x:26, y:33}, 20);*/
-
     /**
      * 创建游戏场景
      * Create a game scene
      */
-    private createGameScene(): void {
+    Main.prototype.createGameScene = function () {
         //加载第一张图片
-        var sky: egret.Bitmap = this.createBitmapByName("bg_jpg");
+        var sky = this.createBitmapByName("bg_jpg");
         this.addChild(sky);
-        var stageW: number = this.stage.stageWidth;
-        var stageH: number = this.stage.stageHeight;
+        var stageW = this.stage.stageWidth;
+        var stageH = this.stage.stageHeight;
         sky.width = stageW;
         sky.height = stageH;
         //黑框部分
@@ -230,18 +200,16 @@ class Main extends egret.DisplayObjectContainer {
         topMask.y = 33;
         this.addChild(topMask);
         //Egret图标
-        var icon: egret.Bitmap = this.createBitmapByName("egret_icon_png");
+        var icon = this.createBitmapByName("egret_icon_png");
         this.addChild(icon);
         icon.x = 26;
         icon.y = 33;
-
         //pageTurning(pageNumCurrent);
         //2016touch
         /*icon.touchEnabled = true;
         icon.addEventListener(egret.TouchEvent.TOUCH_BEGIN,()=>{
             alert(1111);
         },this);*/
-
         var line = new egret.Shape();
         line.graphics.lineStyle(2, 0xffffff);
         line.graphics.moveTo(0, 0);
@@ -250,8 +218,6 @@ class Main extends egret.DisplayObjectContainer {
         line.x = 172;
         line.y = 61;
         this.addChild(line);
-
-
         var colorLabel = new egret.TextField();
         colorLabel.textColor = 0xffffff;
         colorLabel.width = stageW - 172;
@@ -261,7 +227,6 @@ class Main extends egret.DisplayObjectContainer {
         colorLabel.x = 172;
         colorLabel.y = 80;
         this.addChild(colorLabel);
-
         var textfield = new egret.TextField();
         this.addChild(textfield);
         textfield.alpha = 0;
@@ -272,115 +237,71 @@ class Main extends egret.DisplayObjectContainer {
         textfield.x = 172;
         textfield.y = 135;
         this.textfield = textfield;
-
-        var nameText:egret.TextField = new egret.TextField();
-        nameText.text = "My name is WangChen1";
-        this.addChild(nameText);
-        nameText.textColor = 0x9999ff;
-        nameText.alpha = 1;
-        nameText.x = 100;
-        nameText.y = 100;
-
         //根据name关键字，异步获取一个json配置文件，name属性请参考resources/resource.json配置文件的内容。
         // Get asynchronously a json configuration file according to name keyword. As for the property of name please refer to the configuration file of resources/resource.json.
         RES.getResAsync("description_json", this.startAnimation, this);
-
         //第二张图片
-        var sky2: egret.Bitmap = this.createBitmapByName("bg_2_jpg");
+        var sky2 = this.createBitmapByName("bg_2_jpg");
         this.addChild(sky2);
         sky2.width = stageW;
         sky2.height = stageH;
         sky2.x = 0;
         sky2.y = 1136;
-
-        //第二页的文字应该放在第二页图片上加载
-        var nameText2:egret.TextField = new egret.TextField();
-        nameText2.text = "My name is WangChen2";
-        this.addChild(nameText2);
-        nameText2.textColor = 0x9999ff;
-        nameText2.alpha = 0;
-        nameText2.x = 50;
-        nameText2.y = 100;
-        
-
-        //后面的图片会覆盖前面的
-        var sky3: egret.Bitmap = this.createBitmapByName("bg_3_jpg");
+        var sky3 = this.createBitmapByName("bg_3_jpg");
         this.addChild(sky3);
         sky3.width = stageW;
         sky3.height = stageH;
         sky3.x = 0;
         sky3.y = 1136;
-
-        var nameText3:egret.TextField = new egret.TextField();
-        nameText3.text = "My name is WangChen3";
-        this.addChild(nameText3);
-        nameText3.textColor = 0x9999ff;
-        nameText3.alpha = 0;
-        nameText3.x = 11;
-        nameText3.y = 100;
-        
         var pageNumAll = 2;
         //总页面数写作2其实是3页
         var pageArray = [sky, sky2, sky3];
-        var textArray = [nameText, nameText2, nameText3];
-        this.pageTurningBitmap(pageArray, pageNumAll, textArray);
-    }
-
-
-
-
+        this.pageTurningBitmap(pageArray, pageNumAll);
+    };
     /**
      * 根据name关键字创建一个Bitmap对象。name属性请参考resources/resource.json配置文件的内容。
      * Create a Bitmap object according to name keyword.As for the property of name please refer to the configuration file of resources/resource.json.
      */
-    private createBitmapByName(name: string): egret.Bitmap {
+    Main.prototype.createBitmapByName = function (name) {
         var result = new egret.Bitmap();
-        var texture: egret.Texture = RES.getRes(name);
+        var texture = RES.getRes(name);
         result.texture = texture;
         return result;
-    }
-
+    };
     /**
      * 描述文件加载成功，开始播放动画
      * Description file loading is successful, start to play the animation
      */
-    private startAnimation(result: Array<any>): void {
-        var self: any = this;
-
+    Main.prototype.startAnimation = function (result) {
+        var self = this;
         var parser = new egret.HtmlTextParser();
-        var textflowArr: Array<Array<egret.ITextElement>> = [];
-        for (var i: number = 0; i < result.length; i++) {
+        var textflowArr = [];
+        for (var i = 0; i < result.length; i++) {
             textflowArr.push(parser.parser(result[i]));
         }
-
         var textfield = self.textfield;
         var count = -1;
-        var change: Function = function () {
+        var change = function () {
             count++;
             if (count >= textflowArr.length) {
                 count = 0;
             }
             var lineArr = textflowArr[count];
-
             self.changeDescription(textfield, lineArr);
-
             var tw = egret.Tween.get(textfield);
             tw.to({ "alpha": 1 }, 200);
             tw.wait(2000);
             tw.to({ "alpha": 0 }, 200);
             tw.call(change, self);
         };
-
         change();
-    }
-
+    };
     /**
      * 切换描述内容
      * Switch to described content
      */
-    private changeDescription(textfield: egret.TextField, textFlow: Array<egret.ITextElement>): void {
+    Main.prototype.changeDescription = function (textfield, textFlow) {
         textfield.textFlow = textFlow;
-    }
-}
-
-
+    };
+    return Main;
+}(egret.DisplayObjectContainer));

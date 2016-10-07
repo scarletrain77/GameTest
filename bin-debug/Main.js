@@ -101,7 +101,7 @@ var Main = (function (_super) {
     /**
      * 翻页函数，在画场景中调用
      */
-    p.pageTurningBitmap = function (pageArray, pageNumAll) {
+    p.pageTurningBitmap = function (pageArray, pageNumAll, pageText) {
         var _this = this;
         var distance = 0;
         var stageYBeforeMove = 0;
@@ -122,17 +122,21 @@ var Main = (function (_super) {
             distance = stageYBeforeMove - stageYAfterMove;
             //往后翻
             if (distance > 0) {
-                _this.pageTurningDetermine(pageNumAll, distance, pageArray[_this.pageNumCurrent], pageArray[_this.pageNumCurrent + 1]);
+                var pageToNum = _this.pageNumCurrent + 1;
+                console.log("现在开始往后翻，翻前页" + _this.pageNumCurrent + "翻后页：" + pageToNum);
+                _this.pageTurningDetermine(pageNumAll, distance, pageArray[_this.pageNumCurrent], pageArray[_this.pageNumCurrent + 1], pageText[_this.pageNumCurrent], pageText[_this.pageNumCurrent + 1]);
             }
             else {
-                _this.pageTurningDetermine(pageNumAll, distance, pageArray[_this.pageNumCurrent - 1], pageArray[_this.pageNumCurrent]);
+                var pageNowNum = _this.pageNumCurrent - 1;
+                console.log("现在开始往前翻，翻前页" + _this.pageNumCurrent + "翻后页" + pageNowNum);
+                _this.pageTurningDetermine(pageNumAll, distance, pageArray[_this.pageNumCurrent], pageArray[_this.pageNumCurrent - 1], pageText[_this.pageNumCurrent], pageText[_this.pageNumCurrent - 1]);
             }
         }, this);
     };
     /**
      *两个参数为before是当前页，after是想要翻到的页数，判断要怎么翻页
      */
-    p.pageTurningDetermine = function (pageNumAll, moveDistance, pictureBeforeMove, pictureAfterMove) {
+    p.pageTurningDetermine = function (pageNumAll, moveDistance, pictureBeforeMove, pictureAfterMove, textBeforeMove, textAfterMove) {
         if (moveDistance > 300 && this.pageNumCurrent == pageNumAll) {
             alert("最后一页不能往后翻");
         }
@@ -141,20 +145,23 @@ var Main = (function (_super) {
         }
         else if (moveDistance < -300 && this.pageNumCurrent != 0) {
             //alert("中间的页往前翻");
-            this.pageTurningTween(pictureAfterMove);
+            this.showText(textBeforeMove, 0, textBeforeMove.x, textBeforeMove.y + 10);
+            this.pageTurningTween(pictureBeforeMove);
+            this.showText(textAfterMove, 1, textAfterMove.x, textAfterMove.y - 10);
             if (pictureAfterMove.y == 0) {
                 this.pageNumCurrent--;
             }
-            console.log("中间的页往前翻" + pictureAfterMove.y);
         }
         else if (moveDistance > 300 && this.pageNumCurrent != pageNumAll) {
             //alert("中间的页往后翻");
+            console.log("中间的页往后翻" + textBeforeMove.text + " " + textAfterMove.text);
+            this.showText(textBeforeMove, 0, textBeforeMove.x, textBeforeMove.y + 10);
             this.pageTurningTween(pictureAfterMove);
+            this.showText(textAfterMove, 1, textAfterMove.x, textAfterMove.y - 10);
             //防止动画动到一半还改变了页数
             if (pictureAfterMove.y == 1136) {
                 this.pageNumCurrent++;
             }
-            console.log("中间的页往后翻" + pictureAfterMove.y);
         }
         console.log("page:" + this.pageNumCurrent);
     };
@@ -169,6 +176,13 @@ var Main = (function (_super) {
         else if (pageAfterMove.y == 0) {
             pageAfterTween.to({ y: 1136 }, 500);
         }
+    };
+    /**
+     * text:想要变化的文字，toAlpha:所变到的alpha值，toX：去往的X坐标，toY：去往的Y坐标
+     */
+    p.showText = function (text, toAlpha, toX, toY) {
+        var tww = egret.Tween.get(text);
+        tww.to({ "alpha": toAlpha, x: toX, y: toY }, 1000);
     };
     // egret.TouchEvent.TOUCH_BEGIN
     //20160928Begin
@@ -233,6 +247,13 @@ var Main = (function (_super) {
         textfield.x = 172;
         textfield.y = 135;
         this.textfield = textfield;
+        var nameText = new egret.TextField();
+        nameText.text = "My name is WangChen1";
+        this.addChild(nameText);
+        nameText.textColor = 0x9999ff;
+        nameText.alpha = 1;
+        nameText.x = 100;
+        nameText.y = 100;
         //根据name关键字，异步获取一个json配置文件，name属性请参考resources/resource.json配置文件的内容。
         // Get asynchronously a json configuration file according to name keyword. As for the property of name please refer to the configuration file of resources/resource.json.
         RES.getResAsync("description_json", this.startAnimation, this);
@@ -243,16 +264,33 @@ var Main = (function (_super) {
         sky2.height = stageH;
         sky2.x = 0;
         sky2.y = 1136;
+        //第二页的文字应该放在第二页图片上加载
+        var nameText2 = new egret.TextField();
+        nameText2.text = "My name is WangChen2";
+        this.addChild(nameText2);
+        nameText2.textColor = 0x9999ff;
+        nameText2.alpha = 0;
+        nameText2.x = 50;
+        nameText2.y = 100;
+        //后面的图片会覆盖前面的
         var sky3 = this.createBitmapByName("bg_3_jpg");
         this.addChild(sky3);
         sky3.width = stageW;
         sky3.height = stageH;
         sky3.x = 0;
         sky3.y = 1136;
+        var nameText3 = new egret.TextField();
+        nameText3.text = "My name is WangChen3";
+        this.addChild(nameText3);
+        nameText3.textColor = 0x9999ff;
+        nameText3.alpha = 0;
+        nameText3.x = 11;
+        nameText3.y = 100;
         var pageNumAll = 2;
         //总页面数写作2其实是3页
         var pageArray = [sky, sky2, sky3];
-        this.pageTurningBitmap(pageArray, pageNumAll);
+        var textArray = [nameText, nameText2, nameText3];
+        this.pageTurningBitmap(pageArray, pageNumAll, textArray);
     };
     /**
      * 根据name关键字创建一个Bitmap对象。name属性请参考resources/resource.json配置文件的内容。
