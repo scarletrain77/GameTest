@@ -13,8 +13,7 @@
 			"webRoot": "${workspaceRoot}",
 			"preLaunchTask":"build",
 			"port":5153
-		},
-		{
+		},		{
 			"name": "使用本机 Chrome 调试",
 			"type": "chrome",
 			"request": "launch",

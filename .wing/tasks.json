@@ -20,8 +20,7 @@
             "-e"
          ],
          "problemMatcher": "$tsc"
-      },
-      {
+      },      {
          "taskName": "publish",
          "showOutput": "always",
          "args": [
