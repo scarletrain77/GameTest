@@ -201,7 +201,7 @@ class Main extends egret.DisplayObjectContainer {
  */
     private showText(text:egret.TextField, toAlpha:number, toX:number, toY:number):void{
         var tww = egret.Tween.get(text);
-        tww.to({"alpha":toAlpha, x:toX, y:toY}, 1000);
+        tww.to({"alpha":toAlpha, x:toX, y:toY}, 700);
     }
     // egret.TouchEvent.TOUCH_BEGIN
     //20160928Begin
@@ -252,7 +252,7 @@ class Main extends egret.DisplayObjectContainer {
         this.addChild(line);
 
 
-        var colorLabel = new egret.TextField();
+        /*var colorLabel = new egret.TextField();
         colorLabel.textColor = 0xffffff;
         colorLabel.width = stageW - 172;
         colorLabel.textAlign = "center";
@@ -260,7 +260,7 @@ class Main extends egret.DisplayObjectContainer {
         colorLabel.size = 24;
         colorLabel.x = 172;
         colorLabel.y = 80;
-        this.addChild(colorLabel);
+        this.addChild(colorLabel);*/
 
         var textfield = new egret.TextField();
         this.addChild(textfield);
@@ -274,13 +274,13 @@ class Main extends egret.DisplayObjectContainer {
         this.textfield = textfield;
 
         var nameText:egret.TextField = new egret.TextField();
-        nameText.text = "My name is WangChen1";
-        this.addChild(nameText);
-        nameText.textColor = 0x9999ff;
+        nameText.text = "My name is WangChen";
+        nameText.textColor = 0xFFFFFF;
         nameText.alpha = 1;
-        nameText.x = 100;
-        nameText.y = 100;
-
+        nameText.size = 24;
+        nameText.x = 280;
+        nameText.y = 80;
+        this.addChild(nameText);
         //根据name关键字，异步获取一个json配置文件，name属性请参考resources/resource.json配置文件的内容。
         // Get asynchronously a json configuration file according to name keyword. As for the property of name please refer to the configuration file of resources/resource.json.
         RES.getResAsync("description_json", this.startAnimation, this);
@@ -295,12 +295,20 @@ class Main extends egret.DisplayObjectContainer {
 
         //第二页的文字应该放在第二页图片上加载
         var nameText2:egret.TextField = new egret.TextField();
-        nameText2.text = "My name is WangChen2";
+        nameText2.text = "My name is WangChen.\n\n"
+        + "Study at Beijing University of Technology.\n\n"
+        + "I like swimming, jogging and playing\nbadminton.\n"
+        + "I don't like eating mushrooms,which are\n the only thing that I can't accept.\n"
+        + "OpenGL is my most annoying computer\nlanguage. I can't learn it even about\none minute.\n\n\n\n"
+        + "Thats all.\n\n"
+        + "Thank you."
+        ;
+
         this.addChild(nameText2);
-        nameText2.textColor = 0x9999ff;
+        nameText2.textColor = 0x000000;
         nameText2.alpha = 0;
         nameText2.x = 50;
-        nameText2.y = 100;
+        nameText2.y = 600;
         
 
         //后面的图片会覆盖前面的
@@ -312,12 +320,14 @@ class Main extends egret.DisplayObjectContainer {
         sky3.y = 1136;
 
         var nameText3:egret.TextField = new egret.TextField();
-        nameText3.text = "My name is WangChen3";
+        nameText3.text = "END";
         this.addChild(nameText3);
-        nameText3.textColor = 0x9999ff;
+        nameText3.textColor = 0xFFFFFF;
         nameText3.alpha = 0;
-        nameText3.x = 11;
-        nameText3.y = 100;
+        nameText3.textAlign = egret.HorizontalAlign.CENTER;
+        nameText3.x = 320;
+        nameText3.y = 568;
+        nameText3.size = 128;
         
         var pageNumAll = 2;
         //总页面数写作2其实是3页
