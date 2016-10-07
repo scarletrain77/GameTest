@@ -114,7 +114,6 @@ class Main extends egret.DisplayObjectContainer {
 
     private textfield: egret.TextField;
 
-
     /**
      * 翻页函数，在画场景中调用
      */
@@ -122,31 +121,27 @@ class Main extends egret.DisplayObjectContainer {
         var distance = 0;
         var stageYBeforeMove = 0;
         var stageYAfterMove = 0;
-        pageArray[this.pageNumCurrent].touchEnabled = true;
-        for (var i: number = 0; i < pageArray.length; i++) {
-            if (i != this.pageNumCurrent) {
-                pageArray[i].touchEnabled = false;
-            }
+        for(var i = 0; i<pageArray.length; i++){
+            pageArray[i].addEventListener(egret.TouchEvent.TOUCH_BEGIN, (e) => {
+                console.log("Y:" + e.stageY);
+                stageYBeforeMove = e.stageY;
+            }, this);
+            pageArray[i].addEventListener(egret.TouchEvent.TOUCH_END, (e) => {
+                console.log("move to Y:" + e.stageY);
+                stageYAfterMove = e.stageY;
+                distance = stageYBeforeMove - stageYAfterMove;
+                //往后翻
+                if (distance > 0) {
+                    //var pageToNum = this.pageNumCurrent + 1;
+                    //console.log("现在开始往后翻，翻前页" + this.pageNumCurrent + "翻后页：" + pageToNum);
+                    this.pageTurningDetermine(pageNumAll, distance, pageArray[this.pageNumCurrent], pageArray[this.pageNumCurrent + 1], pageText[this.pageNumCurrent], pageText[this.pageNumCurrent+1]);            
+                } else {
+                    //var pageNowNum = this.pageNumCurrent - 1;
+                    //console.log("现在开始往前翻，翻前页" + this.pageNumCurrent + "翻后页" + pageNowNum);
+                    this.pageTurningDetermine(pageNumAll, distance, pageArray[this.pageNumCurrent], pageArray[this.pageNumCurrent - 1], pageText[this.pageNumCurrent], pageText[this.pageNumCurrent-1]);
+                }
+            }, this);
         }
-        pageArray[this.pageNumCurrent].addEventListener(egret.TouchEvent.TOUCH_BEGIN, (e) => {
-            console.log(e.stageY);
-            stageYBeforeMove = e.stageY;
-        }, this);
-        pageArray[this.pageNumCurrent].addEventListener(egret.TouchEvent.TOUCH_END, (e) => {
-            console.log("move to Y:" + e.stageY);
-            stageYAfterMove = e.stageY;
-            distance = stageYBeforeMove - stageYAfterMove;
-            //往后翻
-            if (distance > 0) {
-                var pageToNum = this.pageNumCurrent + 1;
-                console.log("现在开始往后翻，翻前页" + this.pageNumCurrent + "翻后页：" + pageToNum);
-                this.pageTurningDetermine(pageNumAll, distance, pageArray[this.pageNumCurrent], pageArray[this.pageNumCurrent + 1], pageText[this.pageNumCurrent], pageText[this.pageNumCurrent+1]);            
-            } else {
-                var pageNowNum = this.pageNumCurrent - 1;
-                console.log("现在开始往前翻，翻前页" + this.pageNumCurrent + "翻后页" + pageNowNum);
-                this.pageTurningDetermine(pageNumAll, distance, pageArray[this.pageNumCurrent], pageArray[this.pageNumCurrent - 1], pageText[this.pageNumCurrent], pageText[this.pageNumCurrent-1]);
-            }
-        }, this);
     }
 
     /**
@@ -156,44 +151,75 @@ class Main extends egret.DisplayObjectContainer {
         if (moveDistance > 300 && this.pageNumCurrent == pageNumAll) {
             alert("最后一页不能往后翻");
             //console.log("最后一页不能往后翻");
-        }
-        else if (moveDistance < -300 && this.pageNumCurrent == 0) {
+        } else if (moveDistance < -300 && this.pageNumCurrent == 0) {
             alert("第一页不能往前翻");
             //console.log("第一页不能往前翻");
-        } else if (moveDistance < -300 && this.pageNumCurrent != 0) {
+        }else if(moveDistance  > -300 && moveDistance <300){
+            this.rollingPages(pictureBeforeMove, pictureAfterMove, moveDistance);
+        }else if (moveDistance < -300 && this.pageNumCurrent != 0) {
             //alert("中间的页往前翻");
+
             this.showText(textBeforeMove, 0, textBeforeMove.x, textBeforeMove.y+10);
-            this.pageTurningTween(pictureBeforeMove);
+            this.pageTurningTween(pictureBeforeMove, pictureAfterMove);
             this.showText(textAfterMove, 1, textAfterMove.x, textAfterMove.y-10);
-            if (pictureAfterMove.y == 0) {
+            if (pictureAfterMove.y == 1136 || pictureAfterMove.y == 0 ||pictureAfterMove.y == -1136) {
                 this.pageNumCurrent--;
             }
+            console.log("翻之后，当前页坐标" +pictureBeforeMove.y +  "要翻到的y坐标" + pictureAfterMove.y);
             
         } else if (moveDistance > 300 && this.pageNumCurrent != pageNumAll) {
             //alert("中间的页往后翻");
-            console.log("中间的页往后翻" + textBeforeMove.text + " " + textAfterMove.text);
+            console.log("翻前，当前页坐标" +pictureBeforeMove.y +  "要翻到的y坐标" + pictureAfterMove.y);
             this.showText(textBeforeMove, 0, textBeforeMove.x, textBeforeMove.y+10);
-            this.pageTurningTween(pictureAfterMove);
+            this.pageTurningTween(pictureBeforeMove,pictureAfterMove);
             this.showText(textAfterMove, 1, textAfterMove.x, textAfterMove.y-10);
             //防止动画动到一半还改变了页数
-            if (pictureAfterMove.y == 1136) {
+            if (pictureAfterMove.y == 1136 || pictureAfterMove.y == 0 ||pictureAfterMove.y == -1136) {
                 this.pageNumCurrent++;
             }
-            
         }
         console.log("page:" + this.pageNumCurrent);
     }
 
+
     /**
-     * 实现翻页
+     * 滚动页面，小于300都是没翻动的
      */
-    private pageTurningTween(pageAfterMove: egret.Bitmap): void {
+    private rollingPages(pageBeforeMove:egret.Bitmap, pageAfterMove: egret.Bitmap, moveDistance:number):void{
         var pageAfterTween = egret.Tween.get(pageAfterMove);
-        if (pageAfterMove.y == 1136) {
+        var pageBeforeTween = egret.Tween.get(pageBeforeMove);
+        var tempTo = pageBeforeMove.y - moveDistance;
+        var tempOri = pageBeforeMove.y;
+        var tempToAf = pageAfterMove.y - moveDistance;
+        var tempOriAf = pageAfterMove.y;
+        pageBeforeTween.to({y:tempTo}, 300);
+        pageAfterTween.to({y:tempToAf}, 300);
+        pageBeforeTween.to({y:tempOri}, 300);
+        pageAfterTween.to({y:tempOriAf}, 300);
+    }
+
+    /**
+     * 实现翻页,pageBeforeMove为当前页，pageAfterMove为想要翻到的页
+     */
+    private pageTurningTween(pageBeforeMove:egret.Bitmap, pageAfterMove: egret.Bitmap): void {
+        var pageAfterTween = egret.Tween.get(pageAfterMove);
+        var pageBeforeTween = egret.Tween.get(pageBeforeMove);
+        //如果当前页y=0,要翻到的页为-1136，则为往前翻，当前页翻后坐标为1136,翻到页y=0
+        //如果当前页y=0,要翻到的页为1136,则为往后翻,当前页翻后-1136，翻到页y=0
+        //后
+        if(pageAfterMove.y == (pageBeforeMove.y + 1136)){
+            var tempTo = pageBeforeMove.y - 1136;
+            pageBeforeTween.to({y:tempTo},500);
+        }else if(pageAfterMove.y == (pageBeforeMove.y - 1136)){
+            var tempTo = pageBeforeMove.y + 1136;
+            pageBeforeTween.to({y:tempTo}, 500);            
+        }
+        pageAfterTween.to({y:0}, 500);
+/*        if (pageAfterMove.y == 1136) {
             pageAfterTween.to({ y: 0 }, 500);
         } else if (pageAfterMove.y == 0) {
             pageAfterTween.to({ y: 1136 }, 500);
-        }
+        }*/
     }
 
 /**
@@ -222,6 +248,7 @@ class Main extends egret.DisplayObjectContainer {
         var stageH: number = this.stage.stageHeight;
         sky.width = stageW;
         sky.height = stageH;
+        sky.touchEnabled = true;
         //黑框部分
         var topMask = new egret.Shape();
         topMask.graphics.beginFill(0x000000, 0.5);
@@ -292,6 +319,7 @@ class Main extends egret.DisplayObjectContainer {
         sky2.height = stageH;
         sky2.x = 0;
         sky2.y = 1136;
+        sky2.touchEnabled = true;
 
         //第二页的文字应该放在第二页图片上加载
         var nameText2:egret.TextField = new egret.TextField();
@@ -318,6 +346,7 @@ class Main extends egret.DisplayObjectContainer {
         sky3.height = stageH;
         sky3.x = 0;
         sky3.y = 1136;
+        sky3.touchEnabled = true;
 
         var nameText3:egret.TextField = new egret.TextField();
         nameText3.text = "END";
